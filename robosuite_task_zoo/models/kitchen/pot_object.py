@@ -111,25 +111,25 @@ class PotObject(CompositeObject):
             solref=solref,                                    
             density=density)
 
-        handle_radius = 0.01
-        handle_width = 0.055
-        handle_length = edge_width * 2
-        handle_friction = 1.0
+        # handle_radius = 0.01
+        # handle_width = 0.00 #0.055
+        # handle_length = edge_width * 2
+        # handle_friction = 1.0
 
-        for (direction, y) in zip(['left', 'right'], [pot_length , -pot_length]):
-            add_to_dict(
-                dic=obj_args,
-                geom_types="box",
-                geom_locations=(0.0, y, 2 * pot_height + 0.007),
-                geom_quats=T.convert_quat(T.axisangle2quat(np.array([0, 0, 0])), to="wxyz"),
-                geom_sizes=np.array([handle_width / 2, handle_length / 2, handle_radius]),
-                geom_names=f"handle_{direction}_1",
-                geom_rgbas=None,
-                geom_materials=geom_mat,
-                # geom_frictions=(handle_friction, 0.005, 0.0001),
-                geom_frictions=geom_frictions,
-                solref=solref,                                
-                density=density)
+        # for (direction, y) in zip(['left', 'right'], [pot_length , -pot_length]):
+        #     add_to_dict(
+        #         dic=obj_args,
+        #         geom_types="box",
+        #         geom_locations=(0.0, y, 2 * pot_height + 0.007),
+        #         geom_quats=T.convert_quat(T.axisangle2quat(np.array([0, 0, 0])), to="wxyz"),
+        #         geom_sizes=np.array([handle_width / 2, handle_length / 2, handle_radius]),
+        #         geom_names=f"handle_{direction}_1",
+        #         geom_rgbas=None,
+        #         geom_materials=geom_mat,
+        #         # geom_frictions=(handle_friction, 0.005, 0.0001),
+        #         geom_frictions=geom_frictions,
+        #         solref=solref,                                
+        #         density=density)
 
         
         bottom_site = self.get_site_attrib_template()
