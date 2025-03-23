@@ -381,7 +381,7 @@ class KitchenEnv(SingleArmEnv):
         """
         observables = super()._setup_observables()
 
-        observables["robot0_joint_pos"]._active = True
+        observables["robot0_joint_pos"]._active = False
         
         # low-level object information
         if self.use_object_obs:
@@ -418,16 +418,29 @@ class KitchenEnv(SingleArmEnv):
             sensors += obj_sensors
             names += obj_sensor_names
             
-        @sensor(modality=modality)
-        def gripper_contact(obs_cache):
-            return self._has_gripper_contact
+        # @sensor(modality=modality)
+        # def gripper_contact(obs_cache):
+        #     return self._has_gripper_contact
 
-        @sensor(modality=modality)
-        def force_norm(obs_cache):
-            return np.linalg.norm(self.robots[0].ee_force - self.ee_force_bias)
+        # @sensor(modality=modality)
+        # def force_norm(obs_cache):
+        #     return np.linalg.norm(self.robots[0].ee_force - self.ee_force_bias)
 
-        sensors += [gripper_contact, force_norm]
-        names += [f"{pf}contact", f"{pf}eef_force_norm"]
+        # sensors += [gripper_contact, force_norm]
+        # names += [f"{pf}contact", f"{pf}eef_force_norm"]
+
+        @sensor(modality="object")
+        def table_pos(obs_cache):
+            return np.array(self.table_offset)
+        sensors += [table_pos]
+        names += ["table_pos"]
+
+        @sensor(modality="object")
+        def table_euler_angles(obs_cache):
+            return np.array([0, 0, 0])
+        sensors += [table_euler_angles]
+        names += ["table_euler_angles"]
+
 
         for name, s in zip(names, sensors):
             if name == "world_pose_in_gripper":
@@ -444,7 +457,7 @@ class KitchenEnv(SingleArmEnv):
                     sensor=s,
                     sampling_rate=self.control_freq
                 )
-                
+        observables = self.rename_observables(observables)
         return observables
 
     def _create_obj_sensors(self, obj_name, modality="object"):
@@ -468,8 +481,8 @@ class KitchenEnv(SingleArmEnv):
             return np.array(self.sim.data.body_xpos[self.obj_body_id[obj_name]])
 
         @sensor(modality=modality)
-        def obj_quat(obs_cache):
-            return T.convert_quat(self.sim.data.body_xquat[self.obj_body_id[obj_name]], to="xyzw")
+        def obj_euler_angles(obs_cache):
+            return T.mat2euler(T.quat2mat(T.convert_quat(self.sim.data.body_xquat[self.obj_body_id[obj_name]], to="xyzw")))
 
         @sensor(modality=modality)
         def obj_to_eef_pos(obs_cache):
@@ -488,12 +501,36 @@ class KitchenEnv(SingleArmEnv):
             return obs_cache[f"{obj_name}_to_{pf}eef_quat"] if \
                 f"{obj_name}_to_{pf}eef_quat" in obs_cache else np.zeros(4)
 
-        sensors = [obj_pos, obj_quat, obj_to_eef_pos, obj_to_eef_quat]
-        names = [f"{obj_name}_pos", f"{obj_name}_quat", f"{obj_name}_to_{pf}eef_pos", f"{obj_name}_to_{pf}eef_quat"]
+        sensors = [obj_pos, obj_euler_angles]
+        names = [f"{obj_name}_pos", f"{obj_name}_euler_angles"]
 
         return sensors, names
     
-    
+    def rename_observables(self, observables):
+        """
+        Make copies of the observables with names that match the planning domain.
+        """
+        # Positions of objects
+        observables['gripper1_pos'] = observables.pop('robot0_eef_pos')
+        observables['griper1_fingers_qpos'] = observables.pop('robot0_gripper_fingers_qpos')
+        observables['stove1_pos'] = observables.pop('Stove1_pos')
+        observables['bread1_pos'] = observables.pop('cube_bread_pos')
+        observables['pot1_pos'] = observables.pop('PotObject_pos')
+        observables['serving1_pos'] = observables.pop('ServingRegionRed_pos')
+        observables['table1_pos'] = observables.pop('table_pos')
+        observables['switch1_pos'] = observables.pop('Button1_pos')
+        
+        # Euler angles of objects
+        observables['gripper1_euler_angles'] = observables.pop('robot0_eef_euler_angles')
+        observables['stove1_euler_angles'] = observables.pop('Stove1_euler_angles')
+        observables['bread1_euler_angles'] = observables.pop('cube_bread_euler_angles')
+        observables['pot1_euler_angles'] = observables.pop('PotObject_euler_angles')
+        observables['serving1_euler_angles'] = observables.pop('ServingRegionRed_euler_angles')
+        observables['table1_euler_angles'] = observables.pop('table_euler_angles')
+        observables['switch1_euler_angles'] = observables.pop('Button1_euler_angles')
+
+        return observables
+
     def _reset_internal(self):
         """
         Resets simulation internal configurations.
