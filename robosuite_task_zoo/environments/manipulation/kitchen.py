@@ -49,8 +49,8 @@ class KitchenEnv(SingleArmEnv):
         contact_threshold=2.0
     ):
         # settings for table top (hardcoded since it's not an essential part of the environment)
-        self.table_full_size = (1.0, 0.8, 0.05)
-        self.table_offset = (-0.2, 0, 0.90)
+        self.table_full_size = (0.8, 0.8, 0.05)
+        self.table_offset = (-0.0, 0, 0.90)
 
         # reward configuration
         self.reward_scale = reward_scale

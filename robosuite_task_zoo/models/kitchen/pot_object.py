@@ -37,39 +37,42 @@ class PotObject(CompositeObject):
 
         geom_mat = "steel_scratched_mat"
         pot_width = 0.0
-        pot_length = 0.06
+        pot_length = 0.08
 
         edge_width = 0.007
         geom_frictions = (0.005, 0.005, 0.0001)
 
-        solref = (0.02, 1.)
+        solref = (0.01, 1.)
+        solimp = (0.99, 0.99, 0.002)
         
         add_to_dict(
             dic=obj_args,
             geom_types="box",
             geom_locations=(0., 0., 0.0025),
             geom_quats=T.convert_quat(T.axisangle2quat(np.array([0, 0, 0])), to="wxyz"),
-            geom_sizes=np.array([pot_length - 0.01 - 0.007, pot_length - 0.007, 0.005]),
+            geom_sizes=np.array([pot_length - 0.01 - 0.007 - 0.02, pot_length - 0.007, 0.005]),
             geom_names=f"body_0",
             geom_rgbas=None,
             geom_materials=geom_mat,
             geom_frictions=(0.0005, 0.005, 0.0001),
             # geom_frictions=(0.0, 0.0, 0.0),
             solref=solref,
+            solimp=solimp,
         )
 
-        pot_height = 0.035
+        pot_height = 0.018
         add_to_dict(
             dic=obj_args,
             geom_types="box",
             geom_locations=(pot_width, -pot_length, pot_height - 0.0025),
             geom_quats=T.convert_quat(T.axisangle2quat(np.array([0, 0, 0])), to="wxyz"),
-            geom_sizes=np.array([pot_length + 0.007 - 0.01, edge_width, pot_height]),
+            geom_sizes=np.array([pot_length + 0.007 - 0.01 - 0.02, edge_width, pot_height]),
             geom_names=f"body_1",
             geom_rgbas=None,
             geom_materials=geom_mat,
             geom_frictions=geom_frictions,
             solref=solref,
+            solimp=solimp,
             density=density)
 
         add_to_dict(
@@ -77,59 +80,63 @@ class PotObject(CompositeObject):
             geom_types="box",
             geom_locations=(pot_width, pot_length, pot_height - 0.0025),
             geom_quats=T.convert_quat(T.axisangle2quat(np.array([0, 0, 0])), to="wxyz"),
-            geom_sizes=np.array([pot_length + 0.007 - 0.01, edge_width, pot_height]),
+            geom_sizes=np.array([pot_length + 0.007 - 0.01 - 0.02, edge_width, pot_height]),
             geom_names=f"body_2",
             geom_rgbas=None,
             geom_materials=geom_mat,
             geom_frictions=geom_frictions,
-            solref=solref,                                    
+            solref=solref,
+            solimp=solimp,                                    
             density=density)
 
         add_to_dict(
             dic=obj_args,
             geom_types="box",
-            geom_locations=(pot_length - 0.01, pot_width, pot_height - 0.0025),
+            geom_locations=(pot_length - 0.01 - 0.02, pot_width, pot_height - 0.0025),
             geom_quats=T.convert_quat(T.axisangle2quat(np.array([0, 0, 0])), to="wxyz"),
             geom_sizes=np.array([0.007, pot_length - 0.007, pot_height]),
             geom_names=f"body_3",
             geom_rgbas=None,
             geom_materials=geom_mat,
             geom_frictions=geom_frictions,
-            solref=solref,                                    
+            solref=solref,
+            solimp=solimp,                                    
             density=density)
 
         add_to_dict(
             dic=obj_args,
             geom_types="box",
-            geom_locations=(-pot_length + 0.01, pot_width, pot_height - 0.0025),
+            geom_locations=(-pot_length + 0.01 + 0.02, pot_width, pot_height - 0.0025),
             geom_quats=T.convert_quat(T.axisangle2quat(np.array([0, 0, 0])), to="wxyz"),
             geom_sizes=np.array([0.007, pot_length - 0.007, pot_height]),
             geom_names=f"body_4",
             geom_rgbas=None,
             geom_materials=geom_mat,
             geom_frictions=geom_frictions,
-            solref=solref,                                    
+            solref=solref,
+            solimp=solimp,                                   
             density=density)
 
-        # handle_radius = 0.01
-        # handle_width = 0.00 #0.055
-        # handle_length = edge_width * 2
-        # handle_friction = 1.0
+        handle_radius = 0.01
+        handle_width = 0.055
+        handle_length = edge_width * 2
+        handle_friction = 1.0
 
-        # for (direction, y) in zip(['left', 'right'], [pot_length , -pot_length]):
-        #     add_to_dict(
-        #         dic=obj_args,
-        #         geom_types="box",
-        #         geom_locations=(0.0, y, 2 * pot_height + 0.007),
-        #         geom_quats=T.convert_quat(T.axisangle2quat(np.array([0, 0, 0])), to="wxyz"),
-        #         geom_sizes=np.array([handle_width / 2, handle_length / 2, handle_radius]),
-        #         geom_names=f"handle_{direction}_1",
-        #         geom_rgbas=None,
-        #         geom_materials=geom_mat,
-        #         # geom_frictions=(handle_friction, 0.005, 0.0001),
-        #         geom_frictions=geom_frictions,
-        #         solref=solref,                                
-        #         density=density)
+        for (direction, y) in zip(['left', 'right'], [pot_length , -pot_length]):
+            add_to_dict(
+                dic=obj_args,
+                geom_types="box",
+                geom_locations=(0.0, y, 2 * pot_height + 0.007),
+                geom_quats=T.convert_quat(T.axisangle2quat(np.array([0, 0, 0])), to="wxyz"),
+                geom_sizes=np.array([handle_width / 2, handle_length / 2, handle_radius]),
+                geom_names=f"handle_{direction}_1",
+                geom_rgbas=None,
+                geom_materials=geom_mat,
+                # geom_frictions=(handle_friction, 0.005, 0.0001),
+                geom_frictions=geom_frictions,
+                solref=solref,
+                solimp=solimp,                               
+                density=density)
 
         
         bottom_site = self.get_site_attrib_template()
