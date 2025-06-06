@@ -501,8 +501,8 @@ class KitchenEnv(SingleArmEnv):
             return obs_cache[f"{obj_name}_to_{pf}eef_quat"] if \
                 f"{obj_name}_to_{pf}eef_quat" in obs_cache else np.zeros(4)
 
-        sensors = [obj_pos, obj_euler_angles]
-        names = [f"{obj_name}_pos", f"{obj_name}_euler_angles"]
+        sensors = [obj_pos]
+        names = [f"{obj_name}_pos"]
 
         return sensors, names
     
@@ -520,14 +520,16 @@ class KitchenEnv(SingleArmEnv):
         observables['table1_pos'] = observables.pop('table_pos')
         observables['switch1_pos'] = observables.pop('Button1_pos')
         
+        observables['gripper1_aperture'] = observables.pop('robot0_gripper_aperture')
+        
         # Euler angles of objects
-        observables['gripper1_euler_angles'] = observables.pop('robot0_eef_euler_angles')
-        observables['stove1_euler_angles'] = observables.pop('Stove1_euler_angles')
-        observables['bread1_euler_angles'] = observables.pop('cube_bread_euler_angles')
-        observables['pot1_euler_angles'] = observables.pop('PotObject_euler_angles')
-        observables['serving1_euler_angles'] = observables.pop('ServingRegionRed_euler_angles')
-        observables['table1_euler_angles'] = observables.pop('table_euler_angles')
-        observables['switch1_euler_angles'] = observables.pop('Button1_euler_angles')
+        # observables['gripper1_euler_angles'] = observables.pop('robot0_eef_euler_angles')
+        # observables['stove1_euler_angles'] = observables.pop('Stove1_euler_angles')
+        # observables['bread1_euler_angles'] = observables.pop('cube_bread_euler_angles')
+        # observables['pot1_euler_angles'] = observables.pop('PotObject_euler_angles')
+        # observables['serving1_euler_angles'] = observables.pop('ServingRegionRed_euler_angles')
+        # observables['table1_euler_angles'] = observables.pop('table_euler_angles')
+        # observables['switch1_euler_angles'] = observables.pop('Button1_euler_angles')
 
         return observables
 
