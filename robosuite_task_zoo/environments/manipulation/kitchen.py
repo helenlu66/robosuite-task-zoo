@@ -432,14 +432,30 @@ class KitchenEnv(SingleArmEnv):
         @sensor(modality="object")
         def table_pos(obs_cache):
             return np.array(self.table_offset)
-        sensors += [table_pos]
-        names += ["table_pos"]
+        # sensors += [table_pos]
+        # names += ["table_pos"]
 
         @sensor(modality="object")
         def table_euler_angles(obs_cache):
             return np.array([0, 0, 0])
-        sensors += [table_euler_angles]
-        names += ["table_euler_angles"]
+        # sensors += [table_euler_angles]
+        # names += ["table_euler_angles"]
+
+        @sensor(modality=modality)
+        def table_center_to_eef_pos(obs_cache):
+            # Immediately return default value if cache is empty
+            if "world_pose_in_gripper" not in obs_cache:
+                return np.zeros(3)
+            table_pos = np.array(self.table_offset)
+            table_quat = np.array([0, 0, 0, 1])
+            table_pose = T.pose2mat((table_pos, table_quat))
+            rel_pose = T.pose_in_A_to_pose_in_B(table_pose, obs_cache["world_pose_in_gripper"])
+            rel_pos, rel_quat = T.mat2pose(rel_pose)
+            obs_cache[f"table_center_to_{pf}eef_quat"] = rel_quat
+            obs_cache[f"table_center_to_{pf}eef_pos"] = rel_pos
+            return rel_pos
+        sensors += [table_center_to_eef_pos]
+        names += [f"table_center_to_{pf}eef_pos"]
 
 
         for name, s in zip(names, sensors):
@@ -487,22 +503,25 @@ class KitchenEnv(SingleArmEnv):
         @sensor(modality=modality)
         def obj_to_eef_pos(obs_cache):
             # Immediately return default value if cache is empty
-            if any([name not in obs_cache for name in
-                    [f"{obj_name}_pos", f"{obj_name}_quat", "world_pose_in_gripper"]]):
+            if 'world_pose_in_gripper' not in obs_cache:
                 return np.zeros(3)
-            obj_pose = T.pose2mat((obs_cache[f"{obj_name}_pos"], obs_cache[f"{obj_name}_quat"]))
+            obj_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[obj_name]])
+            obj_quat = T.convert_quat(self.sim.data.body_xquat[self.obj_body_id[obj_name]], to="xyzw")
+        
+            obj_pose = T.pose2mat((obj_pos, obj_quat))
             rel_pose = T.pose_in_A_to_pose_in_B(obj_pose, obs_cache["world_pose_in_gripper"])
             rel_pos, rel_quat = T.mat2pose(rel_pose)
             obs_cache[f"{obj_name}_to_{pf}eef_quat"] = rel_quat
             return rel_pos
+
 
         @sensor(modality=modality)
         def obj_to_eef_quat(obs_cache):
             return obs_cache[f"{obj_name}_to_{pf}eef_quat"] if \
                 f"{obj_name}_to_{pf}eef_quat" in obs_cache else np.zeros(4)
 
-        sensors = [obj_pos]
-        names = [f"{obj_name}_pos"]
+        sensors = [obj_to_eef_pos]
+        names = [f"{obj_name}_to_{pf}eef_pos"]
 
         return sensors, names
     
@@ -510,17 +529,20 @@ class KitchenEnv(SingleArmEnv):
         """
         Make copies of the observables with names that match the planning domain.
         """
-        # Positions of objects
+        # Positions of gripper
         observables['gripper1_pos'] = observables.pop('robot0_eef_pos')
-        observables['griper1_fingers_qpos'] = observables.pop('robot0_gripper_fingers_qpos')
-        observables['stove1_pos'] = observables.pop('Stove1_pos')
-        observables['bread1_pos'] = observables.pop('cube_bread_pos')
-        observables['pot1_pos'] = observables.pop('PotObject_pos')
-        observables['serving1_pos'] = observables.pop('ServingRegionRed_pos')
-        observables['table1_pos'] = observables.pop('table_pos')
-        observables['switch1_pos'] = observables.pop('Button1_pos')
-        
         observables['gripper1_aperture'] = observables.pop('robot0_gripper_aperture')
+        observables['griper1_fingers_qpos'] = observables.pop('robot0_gripper_fingers_qpos')
+
+        # Positions of objects
+        observables['stove1_to_gripper1_pos'] = observables.pop('Stove1_to_robot0_eef_pos')
+        observables['bread1_pos'] = observables.pop('cube_bread_to_robot0_eef_pos')
+        observables['pot1_to_gripper1_pos'] = observables.pop('PotObject_to_robot0_eef_pos')
+        observables['serving1_to_gripper1_pos'] = observables.pop('ServingRegionRed_to_robot0_eef_pos')
+        observables['table_center_to_gripper1_pos'] = observables.pop('table_center_to_robot0_eef_pos')
+        observables['switch1_to_gripper1_pos'] = observables.pop('Button1_to_robot0_eef_pos')
+        observables['lid1_to_gripper1_pos'] = observables.pop('lid1_to_robot0_eef_pos')
+        
         
         # Euler angles of objects
         # observables['gripper1_euler_angles'] = observables.pop('robot0_eef_euler_angles')
